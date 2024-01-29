@@ -1,7 +1,7 @@
 ---
 title: "Advanced visualization with ggplot2"
 subtitle: "Challenge 1"
-author: "YOUR NAME"
+author: "Emanuel Deleon Otazu"
 format: 
   html:
     self-contained: true
@@ -18,7 +18,7 @@ You will need to use reference pages and documentation to discover necessary too
 **Requirements for passing:**
 
 - Temperature graph
-    - Bands for the record, normal, and actual highs and lows are shown in the correct colors.
+    -  Bands for the record, normal, and actual highs and lows are shown in the correct colors. 
     - Downward triangles point to the record high temperatures above the red band.
     - Text displays the record high temperatures above the triangles.
     - X-axis label: 3-letter month abbreviations appear in the middle of each month.
@@ -46,6 +46,11 @@ You will need to use reference pages and documentation to discover necessary too
 
 ```{r}
 # Code for loading packages and reading in data
+library(tidyverse)
+library(ggrepel)
+library(ggthemes)
+library(ggpubr)
+weather <- read_csv("https://lmyint.github.io/212_spring_2024/data/sfo_weather.csv")
 ```
 
 
@@ -53,21 +58,106 @@ You will need to use reference pages and documentation to discover necessary too
 # Visualization
 
 ```{r}
-# Code for recreating the visualization
-# Use as many code chunks as you need to organize your work well
+#Wrangling 
+
+month_starts <- weather %>% 
+  filter(Day==1, Month != 1)
+
+month_m <- weather %>%
+  filter(Day ==15 ) %>%
+  pull(dateInYear)
+
+recordHighOnly <-  weather %>%
+  filter(Record) 
+
+recordHighOnlyP <-  weather %>%
+  filter(Day == 28) 
+
+
 ```
 
 
 
+```{r}
+# Code for recreating the visualization (Temperature)
+
+temp <-  ggplot(weather) +
+  geom_linerange(aes(x= dateInYear, ymin = RecordLow, ymax= RecordHigh  ), color= "#ECEBE3")+
+  geom_linerange(aes(x= dateInYear, ymin = NormalLow, ymax= NormalHigh ), color= "#C8B8BA")+
+  geom_linerange(aes(x= dateInYear, ymin = Low, ymax= High ), color= "#A90248")+
+  geom_vline(data= month_starts, mapping = aes(xintercept = dateInYear ),lty= "dashed")+
+  # geom_label_repel(aes(x=dateInYear, y=RecordHigh, label= RecordText ))+
+  geom_text_repel(aes(x=dateInYear, y= RecordHigh, label= RecordText, check_overlap= TRUE))+
+  geom_point(data =recordHighOnly, aes(x= dateInYear, y= RecordHigh),shape= 25, fill= "black")+
+  scale_x_continuous(labels = month.abb ,breaks = month_m)+
+  scale_y_continuous(breaks = c(0, 40, 80, 120))+
+  theme_clean()+
+  labs(title = "Temperature",
+       x= "",
+       y= "")
+ 
+  
+```
+
+```{r}
+# Code for recreating the visualization (Precipitation)
+Precip <- weather %>% 
+  ggplot(aes(x = dateInYear, y = CulmPrec ))+
+  geom_line(aes(x = dateInYear, y = CulmPrec), color= "#32a3d8")+
+  geom_area(fill= "#ebeae2")+
+  geom_vline(data= month_starts, mapping = aes(xintercept = dateInYear),color= "grey")+
+  geom_point(data =recordHighOnlyP,aes(x= dateInYear,y=CulmPrec ),shape= 25,fill= "black")+
+  geom_text_repel(data=recordHighOnly, aes(x=dateInYear, y= CulmPrec, label= CulmPrec,
+                                          check_overlap= TRUE))+
+  labs(title = "Precipitation",
+       x= "",
+       y="")+
+  theme_clean()
+```
+
+```{r}
+#Final Graph, Temperature and Precipitation 
+tempPrecip <- ggarrange(temp, Precip, ncol = 1, nrow = 2, heights = c(2, 1))
+  annotate_figure(tempPrecip, top  = "SFO weather in 2011 ")
+```
 
 # AI usage
 
 If you use an AI tool (e.g., ChatGPT, Google Bard) to help with this assignment, please paste below the prompts you use and their associated output.
 
-**Prompt:**
+**Prompt:** I have a geom_linerange graph, and I have a variable with record values, how do i make these record values to appear as text on my geom_linerange graph?
 
-**Output:**
+
+
+**Output:** 
+
+"To add text labels for record values on a geom_linerange plot in ggplot2, you can use the geom_text layer. Here's an example with a modification to include record values as text labels:
+
+- Assuming you have a variable with record values
+record_values <- c(25, 30, 35)  # Replace this with your actual record values
+
+- Create the plot with custom y-axis breaks and text label for record values
+ggplot(df, aes(x = Date, ymin = 0, ymax = Temperature)) +
+  geom_linerange(color = "blue") +
+  geom_hline(yintercept = record_high_temperature, linetype = "dashed", color = "red") +
+  geom_point(data = df[df$Date == record_high_date, ], aes(shape = "Record High"), size = 3, color = "red") +
+  geom_text(data = data.frame(Date = rep(df$Date[1], length(record_values)), RecordValue = record_values),
+            aes(x = Date, y = RecordValue, label = paste("Record:", RecordValue), vjust = -0.5), color = "green", size = 3) +  # Text label for record values
+  scale_shape_manual(values = 17) +
+  theme_minimal() +
+  labs(title = "Temperature Trend",
+       subtitle = paste("Record High on", format(record_high_date, "%B %d, %Y")),
+       x = "Date",
+       y = "Custom Y-Axis Label") +
+  scale_y_continuous(breaks = c(0, 20, 40))  # Set your custom y-axis breaks here"
+
 
 Keep in mind that the use of AI has a [huge energy cost](https://lmyint.github.io/212_spring_2024/syllabus.html#artificial-intelligence-ai-use). Please describe an energy-saving activity that you can start engaging in to offset this cost.
 
 **Energy-saving activity:** 
+
+
+
+
+
+
