@@ -68,6 +68,9 @@ month_m <- weather %>%
   pull(dateInYear)
 
 recordHighOnly <-  weather %>%
+  filter(RecordP) 
+
+recordHighOnlyT <-  weather %>%
   filter(Record) 
 
 recordHighOnlyP <-  weather %>%
@@ -88,7 +91,7 @@ temp <-  ggplot(weather) +
   geom_vline(data= month_starts, mapping = aes(xintercept = dateInYear ),lty= "dashed")+
   # geom_label_repel(aes(x=dateInYear, y=RecordHigh, label= RecordText ))+
   geom_text_repel(aes(x=dateInYear, y= RecordHigh, label= RecordText, check_overlap= TRUE))+
-  geom_point(data =recordHighOnly, aes(x= dateInYear, y= RecordHigh),shape= 25, fill= "black")+
+  geom_point(data =recordHighOnlyT, aes(x= dateInYear, y= RecordHigh),shape= 25, fill= "black")+
   scale_x_continuous(labels = month.abb ,breaks = month_m)+
   scale_y_continuous(breaks = c(0, 40, 80, 120))+
   theme_clean()+
@@ -106,8 +109,8 @@ Precip <- weather %>%
   geom_line(aes(x = dateInYear, y = CulmPrec), color= "#32a3d8")+
   geom_area(fill= "#ebeae2")+
   geom_vline(data= month_starts, mapping = aes(xintercept = dateInYear),color= "grey")+
-  geom_point(data =recordHighOnlyP,aes(x= dateInYear,y=CulmPrec ),shape= 25,fill= "black")+
-  geom_text_repel(data=recordHighOnly, aes(x=dateInYear, y= CulmPrec, label= CulmPrec,
+  geom_point(data =recordHighOnly,aes(x= dateInYear,y=CulmPrec ),shape= 25,fill= "black")+
+  geom_text_repel(data=recordHighOnlyP, aes(x=dateInYear, y= CulmPrec, label= CulmPrec,
                                           check_overlap= TRUE))+
   labs(title = "Precipitation",
        x= "",
