@@ -7,38 +7,12 @@ format:
     self-contained: true
 ---
 
-# Instructions
+# Revision
 
-**Task:** Using `ggplot2` and other tools in R, recreate the original New York Times graphic to the greatest extent possible. Try to get as close as possible to the figure below:
+In my first submission, I did not include the y axis marks at 0, 40, 80, 120 for the Temperature graph and for the precipitation y axis, the labels were not at 4 and 8. On my first attempt, I didn't think that the marks were as relevant, so I didn't pay much attention to it, but while revising it, I realized how these details make the graph look even better.
+I learned how the scale_y_continuous and its arguments (labels, limits, expand, etc) works, I knew the general idea of the function but I was not as familiar with how it actually works in practice.
+Some optional suggestions were to remove the labels on the x axis on the precipitation graph (which I did), and to change the theme for both plots. I decided to keep the theme_clean() because I didn't like how it looked with other themes, the only issue was that when merging both plots, theme_clean() creates grids/frames, making the graph 'less flowing',if I have this issue in another context, I may used another theme or as a last resource, I would remove those lines on an image editor.
 
-![](https://lmyint.github.io/212_spring_2024/images/hw1_goal.png){width=600, fig-align="center"}
-
-You will need to use reference pages and documentation to discover necessary tools. For example, you may want to Google search "ggplot multiple plots". When looking through results, check publication dates and use newer references.
-
-**Requirements for passing:**
-
-- Temperature graph
-    -  Bands for the record, normal, and actual highs and lows are shown in the correct colors. 
-    - Downward triangles point to the record high temperatures above the red band.
-    - Text displays the record high temperatures above the triangles.
-    - X-axis label: 3-letter month abbreviations appear in the middle of each month.
-    - Y-axis label: Tick marks at 0, 40, 80, and 120 only.
-    - Vertical lines separate the months.
-    - Title of "Temperature" is included.
-- Precipitation
-    - Tan area and blue line reflecting the monthly cumulative precipitation is included.
-    - Text (number) for cumulative precipitation for each month is included at the end of each month just above the blue line.
-    - Downward triangles point to the record precipitation days.
-    - Vertical lines separate the months.
-    - Title of "Precipitation" is included.
-- Overall
-    - Both the temperature and precipitation graphs are in one figure.
-    - The temperature plot takes up more vertical space than the precipitation plot.
-    - The title "SFO weather in 2011" is present.
-
-**Extra:** If you'd like further practice, recreate the legend in the temperature graph that shows how the colored lines relate to record, normal, and actual highs.
-
-**Submission:** Click the "Render" button in RStudio to knit a self-contained HTML with all images embedded. Commit and push changes to this file as well as the generated HTML. Push your changes to GitHub by midnight on Monday 1/29. (GitHub classroom automatically creates a pull request for receiving feedback.)
 
 
 
@@ -76,6 +50,8 @@ recordHighOnlyT <-  weather %>%
 recordHighOnlyP <-  weather %>%
   filter(Day == 28) 
 
+ylimits <-  c(0, 40, 80, 120)
+
 
 ```
 
@@ -85,15 +61,18 @@ recordHighOnlyP <-  weather %>%
 # Code for recreating the visualization (Temperature)
 
 temp <-  ggplot(weather) +
-  geom_linerange(aes(x= dateInYear, ymin = RecordLow, ymax= RecordHigh  ), color= "#ECEBE3")+
-  geom_linerange(aes(x= dateInYear, ymin = NormalLow, ymax= NormalHigh ), color= "#C8B8BA")+
-  geom_linerange(aes(x= dateInYear, ymin = Low, ymax= High ), color= "#A90248")+
-  geom_vline(data= month_starts, mapping = aes(xintercept = dateInYear ),lty= "dashed")+
-  # geom_label_repel(aes(x=dateInYear, y=RecordHigh, label= RecordText ))+
-  geom_text_repel(aes(x=dateInYear, y= RecordHigh, label= RecordText, check_overlap= TRUE))+
-  geom_point(data =recordHighOnlyT, aes(x= dateInYear, y= RecordHigh),shape= 25, fill= "black")+
+  geom_linerange(aes(x= dateInYear, ymin = RecordLow, ymax= RecordHigh ), color= "#ECEBE3")+
+  geom_linerange(aes(x= dateInYear, ymin = NormalLow, ymax= NormalHigh ),color= "#C8B8BA")+
+  geom_linerange(aes(x= dateInYear,  ymin = Low, ymax= High ),color= "#A90248")+
+  geom_vline(data= month_starts,  mapping = aes(xintercept = dateInYear ), lty= "dashed")+
+  geom_text_repel(aes(x=dateInYear, y= RecordHigh,label= RecordText, check_overlap= TRUE))+
+  geom_point(data =recordHighOnlyT, aes(x= dateInYear,  y= RecordHigh),shape= 25, fill= "black")+
   scale_x_continuous(labels = month.abb ,breaks = month_m)+
-  scale_y_continuous(breaks = c(0, 40, 80, 120))+
+  scale_y_continuous(labels = c(0, 40, 80, 120), 
+                     limits = c(min(ylimits), max(ylimits)),
+                     breaks = ylimits,
+                     # expand = expansion(add =c(0, 0))
+                     )+
   theme_clean()+
   labs(title = "Temperature",
        x= "",
@@ -112,10 +91,18 @@ Precip <- weather %>%
   geom_point(data =recordHighOnly,aes(x= dateInYear,y=CulmPrec ),shape= 25,fill= "black")+
   geom_text_repel(data=recordHighOnlyP, aes(x=dateInYear, y= CulmPrec, label= CulmPrec,
                                           check_overlap= TRUE))+
+  # scale_x_continuous(labels = "")+
+  scale_y_continuous(labels = c(4, 8), 
+                     # limits = c(min(ylimits_precip), max(ylimits_precip)),
+                     breaks =  c(4, 8),
+                     limits = c(0, 10)
+                     # expand = expansion(add =c(0, 0))
+                     )+
   labs(title = "Precipitation",
        x= "",
        y="")+
-  theme_clean()
+  theme_clean()+
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 ```
 
 ```{r}
